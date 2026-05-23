@@ -18,22 +18,28 @@ This is a REST API for a Library Management System built with Django and Django 
 
 1. Clone the repository
 
-```bash
+bash
+
 git clone https://github.com/Viktor395/library-service-api.git
 cd library-service-api
 
-2. Set up virtual environment
+ 2. Set up virtual environment
 
-python -m venv .venv
+python -m venv .venv 
+
 source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+
 pip install -r requirements.txt
 
 3. Environment Variables
 Create a .env file in the root directory and add the following keys:
 
 SECRET_KEY=your_django_secret_key
+
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+
 TELEGRAM_CHAT_ID=your_telegram_chat_id
+
 STRIPE_SECRET_KEY=your_stripe_test_secret_key
 
 4. Apply Migrations & Run Server
