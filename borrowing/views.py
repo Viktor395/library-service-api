@@ -1,10 +1,12 @@
 from datetime import date
+from django.db import transaction
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Borrowing
 from .serializers import BorrowingSerializer, BorrowingCreateSerializer
+from payment.services import create_stripe_session
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
@@ -35,7 +37,26 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        with transaction.atomic():
+            borrowing = serializer.save(user=self.request.user)
+
+            try:
+                payment = create_stripe_session(borrowing, self.request)
+                stripe_url = payment.session_url
+            except Exception as e:
+                stripe_url = "Stripe Service Temporarily Unavailable"
+                print(f"Stripe error: {e}")
+
+            message = (
+                f"📚 New Borrowing Created!\n"
+                f"Ref No: {borrowing.id}\n"
+                f"User: {borrowing.user.email}\n"
+                f"Book: '{borrowing.book.title}'\n"
+                f"Expected Return: {borrowing.expected_return_date}\n"
+                f"💳 Pay Here: {stripe_url}"
+            )
+            
+            print(f"[TELEGRAM NOTIFICATION]: {message}")
 
     @action(methods=["POST"], detail=True, url_path="return")
     def return_book(self, request, pk=None):
@@ -47,9 +68,12 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        borrowing.actual_return_date = date.today()
-        borrowing.book.inventory += 1
-        borrowing.book.save()
-        borrowing.save()
+        with transaction.atomic():
+            borrowing.actual_return_date = date.today()
+            borrowing.book.inventory += 1
+            borrowing.book.save()
+            borrowing.save()
+
+        return_message = f"✅ Book '{borrowing.book.title}' was returned!"
 
         return Response(BorrowingSerializer(borrowing).data, status=status.HTTP_200_OK)

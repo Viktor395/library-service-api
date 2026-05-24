@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "user",
     "book",
     "borrowing",
+    "payment",
 ]
 
 MIDDLEWARE = [
@@ -152,3 +153,6 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=9, minute=0), 
     },
 }
+
+
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
