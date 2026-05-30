@@ -48,6 +48,21 @@ STRIPE_CANCEL_URL=http://127.0.0.1:8000/api/payments/cancel/
 python manage.py migrate
 python manage.py runserver
 
+🐳 Running with Docker
+If you prefer to run the entire infrastructure (Django with SQLite, Redis, and Celery) inside Docker containers, follow these steps:
+
+1. Ensure you have Docker and Docker Compose installed.
+
+2. Create and fill your .env file based on .env.sample.
+
+3. Build and launch the containers using the following command in the root directory:
+
+docker-compose up --build
+
+This command automatically applies database migrations, starts the DRF web server on http://127.0.0.1:8000/, runs the Redis instance, and boots up both the Celery worker and Celery Beat scheduler in separate containers.
+
+
+
 ⏰ Background Tasks (Celery & Redis)
 To run the automated background tasks (like daily overdue notifications), make sure Redis server is running, then start Celery components in separate terminal windows:
 
